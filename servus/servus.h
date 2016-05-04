@@ -116,7 +116,7 @@ public:
      * @return the success status of the operation.
      * @version 1.1
      */
-    SERVUS_API Result announce( const unsigned short port,
+    SERVUS_API Result announce(const servus::Servus::Interface interface_, const unsigned short port,
                                 const std::string& instance );
 
     /** Stop announcing the registered key/value pairs. @version 1.1 */
@@ -170,6 +170,10 @@ public:
 
     /** @return the host corresponding to the given instance. @version 1.3 */
     SERVUS_API const std::string& getHost( const std::string& instance ) const;
+
+    /** @return the ip address and port combination for the service provider */
+//    SERVUS_API const std::string&resolveServiceInstanceAddress(const servus::Servus::Interface interface_,
+//                                                               const std::string &inst);
 
     /** @return true if the given key was discovered. @version 1.1 */
     SERVUS_API bool containsKey( const std::string& instance,

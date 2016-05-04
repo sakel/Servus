@@ -30,6 +30,7 @@ set(SERVUS_MAINTAINER "Human Brain Project <HBPVis@googlegroups.com>")
 set(CPACK_PACKAGE_LICENSE LGPL)
 set(COMMON_PROJECT_DOMAIN eu.humanbrainproject)
 set(SERVUS_DEB_DEPENDS libboost-test-dev avahi-daemon libavahi-client-dev)
+# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 
 include(Common)
 

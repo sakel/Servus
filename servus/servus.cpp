@@ -87,7 +87,7 @@ public:
         return empty_;
     }
 
-    virtual servus::Servus::Result announce( const unsigned short port,
+    virtual servus::Servus::Result announce(const servus::Servus::Interface interface_, const unsigned short port,
                                              const std::string& instance ) =0;
     virtual void withdraw() = 0;
     virtual bool isAnnounced() const = 0;
@@ -100,6 +100,7 @@ public:
     virtual bool isBrowsing() const = 0;
     virtual Strings discover( const servus::Servus::Interface interface_,
                               const unsigned browseTime ) = 0;
+//    virtual std::string&resolveServiceInstanceAddress(const servus::Servus::Interface interface_, const std::string &inst) = 0;
 
     Strings getInstances() const
     {
@@ -180,6 +181,11 @@ protected:
 };
 
 }
+
+//    const std::string &Servus::resolveServiceInstanceAddress(const servus::Servus::Interface interface_,
+//                                                             const std::string &inst) {
+//        return _impl->resolveServiceInstanceAddress(interface_, inst);
+//    }
 }
 
 // Impls need detail interface definition above
@@ -276,10 +282,11 @@ const std::string& Servus::get( const std::string& key ) const
     return _impl->get( key );
 }
 
-Servus::Result Servus::announce( const unsigned short port,
+Servus::Result Servus::announce(
+        const servus::Servus::Interface interface_, const unsigned short port,
                                  const std::string& instance )
 {
-    return _impl->announce( port, instance );
+    return _impl->announce( interface_, port, instance );
 }
 
 void Servus::withdraw()

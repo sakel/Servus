@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE( servusItemModel )
     BOOST_CHECK( model.data( QModelIndex( )) == QVariant( ));
 
     servus::Servus service2( serviceName );
-    const servus::Servus::Result& result = service2.announce( 0,
+    const servus::Servus::Result& result = service2.announce( servus::Servus::IF_LOCAL, 0,
                                                               TEST_INSTANCE );
     if( result != servus::Result::SUCCESS ) // happens on CI VMs
     {

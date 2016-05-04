@@ -24,6 +24,7 @@
 #include <avahi-common/simple-watch.h>
 
 #include <net/if.h>
+#include <arpa/inet.h>
 #include <stdexcept>
 
 #include <cassert>
@@ -36,7 +37,9 @@
     namespace chrono = boost::chrono;
 #else
 #  include <mutex>
-    using std::mutex;
+#include <avahi-common/address.h>
+
+using std::mutex;
     typedef std::unique_lock< mutex > ScopedLock;
     namespace chrono = std::chrono;
 #endif
@@ -114,7 +117,7 @@ public:
 
     std::string getClassName() const { return "avahi"; }
 
-    servus::Servus::Result announce( const unsigned short port,
+    servus::Servus::Result announce(const servus::Servus::Interface interface_, const unsigned short port,
                                      const std::string& instance ) final
     {
 
@@ -122,6 +125,7 @@ public:
 
         _result = servus::Servus::Result::PENDING;
         _port = port;
+        _interface = interface_;
         if( instance.empty( ))
             _announce = getHostname();
         else
@@ -229,6 +233,17 @@ public:
         return getInstances();
     }
 
+    /* FIXME - expose protocol */
+//    std::string &resolveServiceInstanceAddress(const servus::Servus::Interface interface_,
+//                                               const std::string &inst) {
+//
+//        detail::ValueMap& values = _instanceMap[ inst ];
+//        std::string host = values["servus_host"];
+//
+//        //avahi_host_name_resolver_new(_client, AVAHI_IF_UNSPEC, AVAHI_PROTO_INET, host.c_str(), AVAHI_PROTO_INET, AVAHI_LOOKUP_USE_WIDE_AREA | AVAHI_LOOKUP_USE_MULTICAST, NULL, NULL);
+//        return "sdfsd";
+//    }
+
 private:
     AvahiSimplePoll* const _poll;
     AvahiClient* _client;
@@ -237,6 +252,7 @@ private:
     int32_t _result;
     std::string _announce;
     unsigned short _port;
+    servus::Servus::Interface _interface;
     bool _announcable;
     servus::Servus::Interface _scope;
 
@@ -313,7 +329,7 @@ private:
             // we free it. If the server is terminated before the callback
             // function is called the server will free the resolver for us.
             if( !avahi_service_resolver_new( _client, ifIndex, protocol, name,
-                                             type, domain, AVAHI_PROTO_UNSPEC,
+                                             type, domain, AVAHI_PROTO_INET,
                                              (AvahiLookupFlags)(0),
                                              _resolveCBS, this ))
             {
@@ -341,19 +357,21 @@ private:
     }
 
     static void _resolveCBS( AvahiServiceResolver* resolver,
-                             AvahiIfIndex, AvahiProtocol,
+                             AvahiIfIndex iFace, AvahiProtocol avahiProtocol,
                              AvahiResolverEvent event, const char* name,
                              const char*, const char*,
-                             const char* host, const AvahiAddress*,
-                             uint16_t, AvahiStringList *txt,
+                             const char* host, const AvahiAddress* address,
+                             uint16_t port, AvahiStringList *txt,
                              AvahiLookupResultFlags, void* servus )
     {
-        ((Servus*)servus)->_resolveCB( resolver, event, name, host, txt );
+        ((Servus*)servus)->_resolveCB( resolver, iFace, avahiProtocol, event, name, host, address, port, txt);
     }
 
     void _resolveCB( AvahiServiceResolver* resolver,
+                     AvahiIfIndex, AvahiProtocol,
                      const AvahiResolverEvent event, const char* name,
-                     const char* host, AvahiStringList *txt )
+                     const char* host, const AvahiAddress* address,
+                     uint16_t port, AvahiStringList *txt )
     {
         // If browsing through the local interface,
         // consider only the local instances
@@ -366,8 +384,7 @@ private:
 
             const std::string& localHost = getHostname();
             // omit the domain for the local hostname
-            if( hostName != localHost.substr( 0,
-                                              localHost.find_first_of( "." )))
+            if( hostName != localHost.substr( 0, localHost.find_first_of( "." )))
                 return;
         }
 
@@ -383,6 +400,14 @@ private:
             {
                 detail::ValueMap& values = _instanceMap[ name ];
                 values[ "servus_host" ] = host;
+                values[ "servus_port" ] = ""+port;
+
+                char str[INET_ADDRSTRLEN];
+
+                inet_ntop(AF_INET, address->data.data, str, INET_ADDRSTRLEN);
+
+                values[ "servus_address" ] = str;
+
                 for( ; txt; txt = txt->next )
                 {
                     const std::string entry(
@@ -430,7 +455,7 @@ private:
                                                i->second.c_str( ));
 
         _result = avahi_entry_group_add_service_strlst(
-            _group, AVAHI_IF_UNSPEC, AVAHI_PROTO_UNSPEC,
+            _group, _interface, AVAHI_PROTO_UNSPEC,
                 (AvahiPublishFlags)(0), _announce.c_str(), _name.c_str(), 0, 0,
                 _port, data );
 

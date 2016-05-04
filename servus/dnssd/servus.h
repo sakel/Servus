@@ -50,7 +50,7 @@ public:
 
     std::string getClassName() const { return "dnssd"; }
 
-    servus::Servus::Result announce( const unsigned short port,
+    servus::Servus::Result announce(const servus::Servus::Interface interface_, const unsigned short port,
                                      const std::string& instance ) final
     {
         if( _out )

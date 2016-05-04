@@ -28,7 +28,7 @@ public:
 
     std::string getClassName() const { return "none"; }
 
-    servus::Servus::Result announce( const unsigned short,
+    servus::Servus::Result announce(const servus::Servus::Interface, const unsigned short,
                                        const std::string& ) final
     {
         return servus::Servus::Result(

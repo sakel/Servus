@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(test_servus)
     }
 
     servus::Servus service( serviceName );
-    const servus::Servus::Result& result = service.announce( port,
+    const servus::Servus::Result& result = service.announce( servus::Servus::IF_LOCAL, port,
                                                              toString( port ));
 
     BOOST_CHECK_EQUAL( service.getName(), serviceName );
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(test_servus)
     service.set( "foo", "bar" );
     BOOST_CHECK_EQUAL( service.get( "foo" ), "bar" );
     BOOST_CHECK_EQUAL( service.get( "bar" ), std::string( ));
-    BOOST_CHECK( service.announce( port, toString( port )));
+    BOOST_CHECK( service.announce( servus::Servus::IF_LOCAL, port, toString( port )));
 
     servus::Strings hosts = service.discover( servus::Servus::IF_LOCAL,
                                               _propagationTime * 1000 );
@@ -162,7 +162,7 @@ BOOST_AUTO_TEST_CASE(test_servus)
 
     { // test updates during browsing
         servus::Servus service2( serviceName );
-        BOOST_CHECK( service2.announce( port+1, toString( port+1 )));
+        BOOST_CHECK( service2.announce( servus::Servus::IF_LOCAL, port+1, toString( port+1 )));
         BOOST_CHECK( service.browse( _propagationTime * 1000 ));
         hosts = service.getInstances();
         BOOST_CHECK_EQUAL( hosts.size(), 2 );
